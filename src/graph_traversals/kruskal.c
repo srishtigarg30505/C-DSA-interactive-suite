@@ -68,7 +68,9 @@ static int compare_edges(const void* a, const void* b)
 {
     KruskalEdge* a_edge = (KruskalEdge*)a;
     KruskalEdge* b_edge = (KruskalEdge*)b;
-    return a_edge->weight - b_edge->weight;
+    if (a_edge->weight < b_edge->weight) return -1;
+    if (a_edge->weight > b_edge->weight) return 1;
+    return 0;
 }
 
 /**
@@ -176,15 +178,11 @@ void kruskal_demo(void)
         break;
     }
 
-    if (edges_num == 0)
-    {
-        printf("\nGraph has 0 edges. No spanning tree can be formed.\n");
-        return;
-    }
-
-    // Allocate memory for all edges and the output MST edges
-    KruskalEdge* edges = malloc(edges_num * sizeof(KruskalEdge));
-    KruskalEdge* mst_edges = malloc((vertices - 1) * sizeof(KruskalEdge));
+    // Allocate memory (at least 1 element to avoid platform-dependent malloc(0) behavior)
+    int alloc_edges = (edges_num > 0) ? edges_num : 1;
+    int alloc_mst = (vertices > 1) ? (vertices - 1) : 1;
+    KruskalEdge* edges = malloc(alloc_edges * sizeof(KruskalEdge));
+    KruskalEdge* mst_edges = malloc(alloc_mst * sizeof(KruskalEdge));
 
     if (!edges || !mst_edges)
     {
@@ -262,7 +260,7 @@ void kruskal_demo(void)
     // If we have fewer than V-1 edges, it means the graph was disconnected.
     if (mst_edge_count < vertices - 1)
     {
-        printf("Warning: The graph is disconnected! The output forms a Spanning Forest containing %d connected components.\n",
+        printf("\nWarning: Graph is disconnected. Generated a Minimum Spanning Forest containing %d connected components.\n",
                vertices - mst_edge_count);
     }
 
